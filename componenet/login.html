@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #2af598, #009efd);
+      color: white;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+      width: 320px;
+    }
+    #player {
+      display: flex;
+      flex-direction: column;
+    }
+    input, button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      margin: 8px;
+      transition: all 0.3s ease;
+    }
+    input {
+      background-color: white;
+      color: #333;
+    }
+    button {
+      background-color: #6c63ff;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #4b47c3;
+      transform: scale(1.05);
+    }
+    .hide {
+      display: none !important;
+    }
+    #bord {
+      display: grid;
+      grid-template-columns: repeat(3, 90px);
+      grid-template-rows: repeat(3, 90px);
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .box {
+      border-radius: 10px;
+      background-color: white;
+      color: black;
+      font-size: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+    }
+    .box:hover {
+      background-color: #ffeb3b;
+      transform: scale(1.05);
+    }
+    .winner {
+      animation: glow 1s infinite alternate;
+    }
+    @keyframes glow {
+      from { background-color: #00ff99; }
+      to { background-color: #00cc66; }
+    }
+    #h3 {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    #restart {
+      margin-top: 15px;
+      background-color: #ff4081;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      display: none;
+      font-weight: bold;
+    }
+    #restart:hover {
+      background-color: #e91e63;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <form id="form">
+      <div id="player">
+        <input required placeholder="Enter Player 1 name">
+        <input required placeholder="Enter Player 2 name">
+        <button type="submit">Start Game</button>
+      </div>
+    </form>
+
+    <div id="total" class="hide">
+      <h1>Tic Tac Toe</h1>
+      <h3 id="h3"></h3>
+      <div id="bord">
+        <div class="box" id="0"></div>
+        <div class="box" id="1"></div>
+        <div class="box" id="2"></div>
+        <div class="box" id="3"></div>
+        <div class="box" id="4"></div>
+        <div class="box" id="5"></div>
+        <div class="box" id="6"></div>
+        <div class="box" id="7"></div>
+        <div class="box" id="8"></div>
+      </div>
+      <button id="restart">Play Again 🔁</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const bord = document.getElementById("total");
+    const restart = document.getElementById("restart");
+    const h3 = document.getElementById("h3");
+    const boxes = document.querySelectorAll(".box");
+    const combinations = [
+      [0,1,2],[3,4,5],[6,7,8],
+      [0,3,6],[1,4,7],[2,5,8],
+      [0,4,8],[2,4,6]
+    ];
+
+    let ply1 = "", ply2 = "";
+    let array = Array(9).fill(null);
+    let current = "X";
+    let active = true;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      ply1 = e.target[0].value;
+      ply2 = e.target[1].value;
+      form.classList.add("hide");
+      bord.classList.remove("hide");
+      h3.textContent = `🎮 It's ${ply1}'s turn (X)`;
+    });
+
+    boxes.forEach(box => {
+      box.addEventListener("click", () => {
+        if (box.textContent || !active) return;
+
+        box.textContent = current;
+        array[box.id] = current;
+
+        if (checkWinner()) {
+          const winner = current === "X" ? ply1 : ply2;
+          h3.textContent = `🏆 ${winner}, Congratulations You Won! 🎉`;
+          document.querySelectorAll(".winner").forEach(el => el.classList.remove("winner"));
+          winningCombo.forEach(id => {
+            document.getElementById(id).classList.add("winner");
+          });
+          active = false;
+          restart.style.display = "inline-block";
+          return;
+        }
+
+        if (array.every(cell => cell)) {
+          h3.textContent = "🤝 It's a Draw!";
+          restart.style.display = "inline-block";
+          return;
+        }
+
+        current = current === "X" ? "O" : "X";
+        h3.textContent = `🎮 It's ${current === "X" ? ply1 : ply2}'s turn (${current})`;
+      });
+    });
+
+    let winningCombo = [];
+    function checkWinner() {
+      for (const combo of combinations) {
+        const [a, b, c] = combo;
+        if (array[a] && array[a] === array[b] && array[a] === array[c]) {
+          winningCombo = combo;
+          return true;
+        }
+      }
+      return false;
+    }
+
+    restart.addEventListener("click", () => {
+      array.fill(null);
+      boxes.forEach(box => {
+        box.textContent = "";
+        box.classList.remove("winner");
+      });
+      active = true;
+      current = "X";
+      restart.style.display = "none";
+      h3.textContent = `🎮 It's ${ply1}'s turn (X)`;
+    });
+  </script>
+</body>
+</html>
